@@ -17,10 +17,10 @@
     SOFTWARE.
 """
 
-from threading import *
+import thread
 import serial
+import serial.tools.list_ports
 import time
-
 
 
 class Create:
@@ -48,6 +48,7 @@ class Create:
         self.port = port
         self.connected = False
         self.connection = None
+        self.portLock = thread.allocate_lock()
 
     def connect(self):
         """
@@ -55,34 +56,64 @@ class Create:
 
         :return: None
         """
-        self.connected = True
+        if self.connected is True:
+            return True  # Return early if we're already connected
+
+        with self.portLock:
+            try:
+                self.connection = serial.Serial(
+                    port=self.port,
+                    parity=serial.PARITY_NONE,
+                    stopbits=serial.STOPBITS_ONE,
+                    bytesize=serial.EIGHTBITS,
+                    baudrate=self.BAUDRATE
+                )
+            except serial.SerialException as msg:
+                print msg
+                print "Please choose from the list below: "
+                print [port.device for port in serial.tools.list_ports.comports()]
+                return
+
+            self.connected = True
+            return self.connection.is_open
 
     def disconnect(self):
         """
-        
+        If the connection is open, close it
+
         :return: None
         """
 
-    def send(self, opcode, bytes=None):
-        """
+        if self.connected is not True:
+            return
 
-        :param opcode:
-        :param bytes:
-        :return:
+        self.connection.close()
+
+    def send(self, command, parambytes=None):
+        """
+        Send a command to the iRobot Create 2.
+
+        :param command: The command to send.  Use an entry from the Commands dictionary.
+        :param parambytes: If the command requires additional bytes, you MUST pass them here or else the Create will hang
         """
         if self.connected is not True:
             raise RuntimeError("You must call connect before sending commands to to Create 2")
+        cmd = command
+        if parambytes is not None:
+            cmd += parambytes
+        self._send_command_ascii(cmd)
 
     def _send_command_ascii(self, command):
         cmd = ""
         for v in command.split():
             cmd += chr(int(v))
-        self._sendCommandRaw(cmd)
+        self._send_command_raw(cmd)
 
     def _send_command_raw(self, cmd):
         try:
             if self.connection is not None:
-                self.connection.write(cmd)
+                with self.portLock:
+                    self.connection.write(cmd)
             else:
                 # tkMessageBox.showerror('Not connected!', 'Not connected to robot')
                 print "Not Connected"

@@ -19,7 +19,8 @@
 from rbCreate import Create
 
 # Initialize the Create robot
-robot = Create("/dev/usb.tty")
+robot = Create("/dev/tty.usbserial-DA01NW5L")
 
 robot.connect()
+robot.send('128 131 143')
 
