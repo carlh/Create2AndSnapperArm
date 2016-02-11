@@ -66,13 +66,13 @@ class Create:
                     parity=serial.PARITY_NONE,
                     stopbits=serial.STOPBITS_ONE,
                     bytesize=serial.EIGHTBITS,
-                    baudrate=self.BAUDRATE
+                    baudrate=self.BAUDRATE,
                 )
             except serial.SerialException as msg:
                 print msg
                 print "Please choose from the list below: "
                 print [port.device for port in serial.tools.list_ports.comports()]
-                return
+                raise RuntimeError("Must select valid serial port")
 
             self.connected = True
             return self.connection.is_open

@@ -82,3 +82,7 @@ crashlytics.properties
 crashlytics-build.properties
 fabric.properties
 Status API Training Shop Blog About Pricing
+
+
+# Ignore the machine specific config.json file
+config.json
