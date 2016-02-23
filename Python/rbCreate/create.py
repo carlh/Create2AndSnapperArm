@@ -21,6 +21,7 @@ import thread
 import serial
 import serial.tools.list_ports
 import time
+import commands
 
 
 class Create:
@@ -32,7 +33,6 @@ class Create:
     Inspired by http://www.rose-hulman.edu/Users/faculty/young/CS-Classes/binaries/Python/FIXME/create.py,
     a library designed for the iRobot Create 1
     """
-    BAUDRATE = 115200
 
     def __init__(self, port):
         """
@@ -66,7 +66,7 @@ class Create:
                     parity=serial.PARITY_NONE,
                     stopbits=serial.STOPBITS_ONE,
                     bytesize=serial.EIGHTBITS,
-                    baudrate=self.BAUDRATE,
+                    baudrate=commands.BAUDRATE_CONNECTION_DEFAULT,
                 )
             except serial.SerialException as msg:
                 print msg
@@ -74,22 +74,71 @@ class Create:
                 print [port.device for port in serial.tools.list_ports.comports()]
                 raise RuntimeError("Must select valid serial port")
 
-            self.connected = True
-            return self.connection.is_open
+        self.connected = True
+        self.start()
+        return self.connection.is_open
 
     def disconnect(self):
         """
         If the connection is open, close it
-
         :return: None
         """
-
         if self.connected is not True:
             return
 
+        self._send(commands.MODE_PASSIVE)
         self.connection.close()
 
-    def send(self, command, parambytes=None):
+    def set_safe_mode(self):
+        """
+        Sets the Create 2 to Safe mode.
+
+        In Safe mode you have full control of the Create 2, except as follows:
+            - Cliff sensors
+            - Charger plugged in
+            - Wheel drop
+        If any of these conditions occur, the Create 2 stops motion and returns to Passive mode.
+        """
+        self._send(commands.MODE_SAFE)
+
+    def set_full_mode(self):
+        """
+        Sets the Create 2 to Full mode.
+
+        This is complete control over the Create 2, and it will not respond to the safety related sensors that
+        are active in Safe mode.
+
+        To exit Full mode, call :setSafeMode:
+        """
+        self._send(commands.MODE_FULL)
+
+    def start(self):
+        """
+        Starts the Create 2's Open Interface.  This is called automatically on connecting, and must be called manually
+        after calling reset.
+        """
+        self._send(commands.STATE_START)
+
+    def reset(self):
+        """
+        Resets the robot, as if the battery had been removed.  You must call @ref(start) to resume sending commands.
+        """
+        self._send(commands.STATE_RESET)
+
+    def stop(self):
+        """
+        Stops the robot and changes mode to OFF.  Create plays a tone.  You must call @ref(start) to resume sending commands.
+        :return:
+        """
+        self._send(commands.STATE_STOP)
+
+    def return_to_dock(self):
+        """
+        Exit the current command and seek the dock.  This changes the mode to Passive.
+        """
+        self._send(commands.RETURN_TO_DOCK)
+
+    def _send(self, command, parambytes=None):
         """
         Send a command to the iRobot Create 2.
 
@@ -115,9 +164,7 @@ class Create:
                 with self.portLock:
                     self.connection.write(cmd)
             else:
-                # tkMessageBox.showerror('Not connected!', 'Not connected to robot')
                 print "Not Connected"
         except serial.SerialException:
             print "Lost Connection"
-            # tkMessageBox.showinfo('Uh-oh', "Lost connection to the robot!")
             self.connection = None
