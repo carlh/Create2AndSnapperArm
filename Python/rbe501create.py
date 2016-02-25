@@ -49,15 +49,20 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("-c", "--config", help="the path to the JSON formatted config file specifying the serial port to use")
     ap.add_argument("-s", "--serial", help="the serial port to use")
+    ap.add_argument("-t", "--test", help="Use a mocked serial connection to debug or test locally")
     args = vars(ap.parse_args())
 
-    if not (args["config"] or args["serial"]):
+    if not (args["config"] or args["serial"]) and not args["test"]:
         print "You must specify either the config file or the serial port to use"
         return -1
 
     port = {}
+    test = False
     if args["serial"]:
         port = args["serial"]
+    elif args["test"]:
+        port = -1
+        test = True
     elif args["config"]:
         try:
             conf = json.load(open(args["config"]))
@@ -69,7 +74,7 @@ def main():
     # Initialize the Create robot
     try:
         robot = Create(port)
-        robot.connect()
+        robot.connect(test)
         atexit.register(close_connection, robot)
         test_sequence(robot)
     except RuntimeError as err:

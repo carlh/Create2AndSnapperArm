@@ -24,6 +24,8 @@ import time
 import commands
 from options import *
 import numpy as np
+from testing.mock_serial import MockSerial
+
 
 class Create:
     """
@@ -52,10 +54,12 @@ class Create:
         self.connection = None
         self.portLock = thread.allocate_lock()
 
-    def connect(self):
+    def connect(self, test=False):
         """
         Open the connection to the iRobot Create 2 and put in Safe mode.
 
+        :param test: If true, the connection will be faked.  This allows running the code in testing and debugging without actually
+                        plugging into the Connect 2
         :return: None
         """
         if self.connected is True:
@@ -63,13 +67,21 @@ class Create:
 
         with self.portLock:
             try:
-                self.connection = serial.Serial(
-                    port=self.port,
-                    parity=serial.PARITY_NONE,
-                    stopbits=serial.STOPBITS_ONE,
-                    bytesize=serial.EIGHTBITS,
-                    baudrate=commands.BAUDRATE_CONNECTION_DEFAULT,
-                )
+                if test:
+                    self.connection = MockSerial(
+                        port=self.port,
+                        parity=serial.PARITY_NONE,
+                        stopbits=serial.STOPBITS_ONE,
+                        bytesize=serial.EIGHTBITS,
+                        baudrate=commands.BAUDRATE_CONNECTION_DEFAULT)
+                else:
+                    self.connection = serial.Serial(
+                        port=self.port,
+                        parity=serial.PARITY_NONE,
+                        stopbits=serial.STOPBITS_ONE,
+                        bytesize=serial.EIGHTBITS,
+                        baudrate=commands.BAUDRATE_CONNECTION_DEFAULT,
+                    )
             except serial.SerialException as msg:
                 print msg
                 print "Please choose from the list below: "
