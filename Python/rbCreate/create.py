@@ -22,7 +22,8 @@ import serial
 import serial.tools.list_ports
 import time
 import commands
-
+from options import *
+import numpy as np
 
 class Create:
     """
@@ -34,6 +35,7 @@ class Create:
     a library designed for the iRobot Create 1
     """
 
+#region Construction and Initialization
     def __init__(self, port):
         """
         Construct a new instance of the Create robot.
@@ -88,7 +90,9 @@ class Create:
 
         self._send(commands.MODE_PASSIVE)
         self.connection.close()
+#endregion
 
+#region Modes
     def set_safe_mode(self):
         """
         Sets the Create 2 to Safe mode.
@@ -111,6 +115,9 @@ class Create:
         To exit Full mode, call :setSafeMode:
         """
         self._send(commands.MODE_FULL)
+#endregion
+
+#region Lifecycle Methods
 
     def start(self):
         """
@@ -132,12 +139,56 @@ class Create:
         """
         self._send(commands.STATE_STOP)
 
+#endregion
+
+#region Predefined Routines
+
     def return_to_dock(self):
         """
         Exit the current command and seek the dock.  This changes the mode to Passive.
         """
         self._send(commands.RETURN_TO_DOCK)
 
+#endregion
+
+#region Actuation
+    def drive(self, direction=DriveDirection.Standstill, speed=0, turn_direction=TurnDirection.Straight, turn_radius=0):
+        """
+        This method gives you direct control over the Create's wheel actuators.
+        :param direction: Use value from DriveDirection enum
+        :param speed: (mm/s) The average velocity of the Create2. Clamped to [0, 500]
+        :param turn_direction: Use value from TurnDirection
+        :param turn_radius: (mm) The radius through which the Create will turn. Clamped to [0, 2000]
+        :return:
+        """
+
+        print "Testing"
+
+    def drive_straight_forward(self, speed=0):
+        """
+        Drives straight forward
+        :param speed: (mm/s) The average velocity of the Create2.  Clamped to [0, 500]
+        :return: None
+        """
+        self.drive(direction=DriveDirection.Forward, speed=speed, turn_direction=TurnDirection.Straight, turn_radius=0)
+
+    def drive_straight_reverse(self, speed=0):
+        """
+        Drives straight in reverse
+        :param speed: (mm/s) The average velocity of the Create2.  Clamped to [0, 500]
+        :return: None
+        """
+        self.drive(direction=DriveDirection.Reverse, speed=speed, turn_direction=TurnDirection.Straight, turn_radius=0)
+
+    def stop_motion(self):
+        """
+        Command the Create2 to stop in place
+        :return: None
+        """
+        self.drive(direction=DriveDirection.Standstill, speed=0, turn_direction=TurnDirection.Straight, turn_radius=0)
+#endregion
+
+#region Private Methods
     def _send(self, command, parambytes=None):
         """
         Send a command to the iRobot Create 2.
@@ -168,3 +219,4 @@ class Create:
         except serial.SerialException:
             print "Lost Connection"
             self.connection = None
+#endregion

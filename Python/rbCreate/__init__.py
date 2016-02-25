@@ -1,2 +1,2 @@
-__author__  = 'Carl Hinkle'
-from create import Create
+from create import *
+from options import *

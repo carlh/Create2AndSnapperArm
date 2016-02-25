@@ -16,7 +16,7 @@
     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 """
-from rbCreate import Create
+from rbCreate import *
 import argparse
 import json
 import atexit
@@ -41,10 +41,8 @@ def test_sequence(robot):
     :param robot: The Create object
     :return: None
     """
-    robot.stop()
-    sleep(4)
-    robot.start()
-    robot.return_to_dock()
+    robot.set_safe_mode()
+    robot.drive_straight_forward(200)
 
 
 def main():

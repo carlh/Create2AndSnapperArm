@@ -16,6 +16,7 @@ Install Python 2.7 and Pip in the usual way, then pip install the following pack
 - requests
 - urllib
 - wheel
+- enum
 
 ## Executing
 
