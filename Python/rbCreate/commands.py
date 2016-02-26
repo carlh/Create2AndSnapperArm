@@ -48,5 +48,8 @@ BAUD_115200 = '11'
 BAUDRATE_CONNECTION_DEFAULT = 115200  # Default startup baudrate
 BAUDRATE_CONNECTION_SLOW = 19200  # For slower connections
 
-# Commands
+# Built in Routines
 RETURN_TO_DOCK = '143'  # Seek the home base and begin charging, setting mode to Passive
+
+# Actuator commands
+DRIVE = '137'

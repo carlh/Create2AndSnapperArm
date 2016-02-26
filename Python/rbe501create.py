@@ -42,7 +42,16 @@ def test_sequence(robot):
     :return: None
     """
     robot.set_safe_mode()
-    robot.drive_straight_forward(200)
+
+    robot.drive(direction=DriveDirection.Reverse, speed=500, turn_direction=TurnDirection.Left, turn_radius=500)
+
+    sleep(3)
+
+    robot.drive(direction=DriveDirection.Forward, speed=300, turn_direction=TurnDirection.Right, turn_radius=500)
+    sleep(4)
+
+    robot.stop_motion()
+    robot.stop()
 
 
 def main():

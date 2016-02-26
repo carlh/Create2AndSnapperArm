@@ -30,3 +30,17 @@ class TurnDirection(Enum):
     Left = 1
     Right = 2
 
+
+class SpecialRadii(object):
+    @staticmethod
+    def straight():
+        return 32767
+
+    @staticmethod
+    def in_place_clockwise():
+        return -1
+
+    @staticmethod
+    def in_place_counterclockwise():
+        return 1
+

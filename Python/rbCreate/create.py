@@ -27,6 +27,14 @@ import numpy as np
 from testing.mock_serial import MockSerial
 
 
+def _to_twos_complement_2_bytes(value):
+    if value >= 0:
+        eqbitval = value
+    else:
+        eqbitval = (1 << 16) + value
+    return (eqbitval >> 8) & 0xFF, eqbitval & 0xFF
+
+
 class Create:
     """
     Create encapsulates the communication between client code and the iRobot Create 2 robot.
@@ -37,7 +45,7 @@ class Create:
     a library designed for the iRobot Create 1
     """
 
-#region Construction and Initialization
+    # region Construction and Initialization
     def __init__(self, port):
         """
         Construct a new instance of the Create robot.
@@ -102,9 +110,10 @@ class Create:
 
         self._send(commands.MODE_PASSIVE)
         self.connection.close()
-#endregion
 
-#region Modes
+    # endregion
+
+    # region Modes
     def set_safe_mode(self):
         """
         Sets the Create 2 to Safe mode.
@@ -127,9 +136,10 @@ class Create:
         To exit Full mode, call :setSafeMode:
         """
         self._send(commands.MODE_FULL)
-#endregion
 
-#region Lifecycle Methods
+    # endregion
+
+    # region Lifecycle Methods
 
     def start(self):
         """
@@ -151,9 +161,9 @@ class Create:
         """
         self._send(commands.STATE_STOP)
 
-#endregion
+    # endregion
 
-#region Predefined Routines
+    # region Predefined Routines
 
     def return_to_dock(self):
         """
@@ -161,10 +171,10 @@ class Create:
         """
         self._send(commands.RETURN_TO_DOCK)
 
-#endregion
+    # endregion
 
-#region Actuation
-    def drive(self, direction=DriveDirection.Standstill, speed=0, turn_direction=TurnDirection.Straight, turn_radius=0):
+    # region Actuation
+    def drive(self, direction=DriveDirection.Standstill, speed=0, turn_direction=TurnDirection.Straight, turn_radius=SpecialRadii.straight()):
         """
         This method gives you direct control over the Create's wheel actuators.
         :param direction: Use value from DriveDirection enum
@@ -173,8 +183,26 @@ class Create:
         :param turn_radius: (mm) The radius through which the Create will turn. Clamped to [0, 2000]
         :return:
         """
+        speed = self._clamp(speed, 0, 500)
+        turn_radius = turn_radius if turn_radius == SpecialRadii.straight() else self._clamp(turn_radius, 0, 2000)
 
-        print "Testing"
+        if direction == DriveDirection.Reverse:
+            speed *= -1
+
+        if turn_direction == TurnDirection.Right:
+            turn_radius *= -1
+
+        print "Driving {0} mm/s with a turn radius of {1}".format(speed, turn_radius)
+
+        twos_comp_speed = _to_twos_complement_2_bytes(speed)
+        twos_comp_rad = _to_twos_complement_2_bytes(turn_radius)
+
+        print "Twos compliment speed: {0}, rad: {1}".format(twos_comp_speed, twos_comp_rad)
+
+        parambytes = "{0} {1} {2} {3}".format(twos_comp_speed[0], twos_comp_speed[1], twos_comp_rad[0],
+                                              twos_comp_rad[1])
+        print "Parambytes = {0}".format(parambytes)
+        self._send(commands.DRIVE, parambytes)
 
     def drive_straight_forward(self, speed=0):
         """
@@ -182,7 +210,8 @@ class Create:
         :param speed: (mm/s) The average velocity of the Create2.  Clamped to [0, 500]
         :return: None
         """
-        self.drive(direction=DriveDirection.Forward, speed=speed, turn_direction=TurnDirection.Straight, turn_radius=0)
+        self.drive(direction=DriveDirection.Forward, speed=speed, turn_direction=TurnDirection.Straight,
+                   turn_radius=SpecialRadii.straight())
 
     def drive_straight_reverse(self, speed=0):
         """
@@ -190,17 +219,20 @@ class Create:
         :param speed: (mm/s) The average velocity of the Create2.  Clamped to [0, 500]
         :return: None
         """
-        self.drive(direction=DriveDirection.Reverse, speed=speed, turn_direction=TurnDirection.Straight, turn_radius=0)
+        self.drive(direction=DriveDirection.Reverse, speed=speed, turn_direction=TurnDirection.Straight,
+                   turn_radius=SpecialRadii.straight())
 
     def stop_motion(self):
         """
         Command the Create2 to stop in place
         :return: None
         """
-        self.drive(direction=DriveDirection.Standstill, speed=0, turn_direction=TurnDirection.Straight, turn_radius=0)
-#endregion
+        self.drive(direction=DriveDirection.Standstill, speed=0, turn_direction=TurnDirection.Straight,
+                   turn_radius=SpecialRadii.straight())
 
-#region Private Methods
+    # endregion
+
+    # region Private Methods
     def _send(self, command, parambytes=None):
         """
         Send a command to the iRobot Create 2.
@@ -212,14 +244,14 @@ class Create:
             raise RuntimeError("You must call connect before sending commands to to Create 2")
         cmd = command
         if parambytes is not None:
-            cmd += parambytes
+            cmd += ' ' + parambytes
         self._send_command_ascii(cmd)
 
     def _send_command_ascii(self, command):
         cmd = ""
         for v in command.split():
             cmd += chr(int(v))
-        self._send_command_raw(cmd)
+            self._send_command_raw(cmd)
 
     def _send_command_raw(self, cmd):
         try:
@@ -231,4 +263,26 @@ class Create:
         except serial.SerialException:
             print "Lost Connection"
             self.connection = None
-#endregion
+
+    def _clamp(self, value, range_low, range_high):
+        """
+        Clamps value to fall between range_low and range_high, inclusive.
+        Throws runtime error if range_low > range_high
+        :param value:
+        :param range_low:
+        :param range_high:
+        :return: range_low if value <= range_low, range_high if value >= range_high, else value
+        """
+        if range_low > range_high:
+            raise RuntimeError("range_low must be less than or equal to range_high")
+
+        if value < range_low:
+            return range_low
+        if value > range_high:
+            return range_high
+        return value
+
+
+    # http://www.rose-hulman.edu/Users/faculty/young/CS-Classes/binaries/Python/FIXME/create.py
+
+# endregion
