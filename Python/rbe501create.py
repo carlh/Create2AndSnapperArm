@@ -16,12 +16,15 @@
     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 """
-from rbCreate import *
 import argparse
-import json
 import atexit
+import json
 import sys
-from time import sleep
+
+from drivers import basic_drive
+from drivers import manual_steering
+from rbCreate import Create
+
 
 def close_connection(robot):
     """
@@ -34,31 +37,12 @@ def close_connection(robot):
         robot.disconnect()
 
 
-def test_sequence(robot):
-    """
-    Define movement routines here for testing
-
-    :param robot: The Create object
-    :return: None
-    """
-    robot.set_safe_mode()
-
-    robot.drive(direction=DriveDirection.Reverse, speed=500, turn_direction=TurnDirection.Left, turn_radius=500)
-
-    sleep(3)
-
-    robot.drive(direction=DriveDirection.Forward, speed=300, turn_direction=TurnDirection.Right, turn_radius=500)
-    sleep(4)
-
-    robot.stop_motion()
-    robot.stop()
-
-
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("-c", "--config", help="the path to the JSON formatted config file specifying the serial port to use")
     ap.add_argument("-s", "--serial", help="the serial port to use")
     ap.add_argument("-t", "--test", help="Use a mocked serial connection to debug or test locally")
+    ap.add_argument("-m", "--mode", help="The mode that the create will run in.  <basic, manual>", default="basic")
     args = vars(ap.parse_args())
 
     if not (args["config"] or args["serial"]) and not args["test"]:
@@ -80,12 +64,25 @@ def main():
             print "An IO Exception occurred: {0}".format(err)
             return -1
 
+    if args["mode"]:
+        mode = args["mode"]
+    else:
+        mode = "basic"
+
+    if mode == "basic":
+        driver = basic_drive
+    elif mode == "manual":
+        driver = manual_steering
+    else:
+        print "Valid modes are basic and manual"
+        return -1
+
     # Initialize the Create robot
     try:
         robot = Create(port)
         robot.connect(test)
         atexit.register(close_connection, robot)
-        test_sequence(robot)
+        driver.run(robot)
     except RuntimeError as err:
         print "A RuntimeError occurred while communicating with the Connect 2: {0}".format(err)
         return -1
