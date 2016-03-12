@@ -21,8 +21,9 @@ import atexit
 import json
 import sys
 
-from drivers import basic_drive
-from drivers import manual_steering
+from drivers import BasicDrive
+from drivers import ManualSteering
+
 from rbCreate import Create
 
 
@@ -34,6 +35,8 @@ def close_connection(robot):
     :return:
     """
     if robot is not None:
+        robot.stop_motion()
+        robot.stop()
         robot.disconnect()
 
 
@@ -69,20 +72,22 @@ def main():
     else:
         mode = "basic"
 
-    if mode == "basic":
-        driver = basic_drive
-    elif mode == "manual":
-        driver = manual_steering
-    else:
-        print "Valid modes are basic and manual"
-        return -1
-
     # Initialize the Create robot
     try:
         robot = Create(port)
         robot.connect(test)
+
         atexit.register(close_connection, robot)
-        driver.run(robot)
+
+        if mode == "basic":
+            driver = BasicDrive(robot)
+        elif mode == "manual":
+            driver = ManualSteering(robot)
+        else:
+            print "Valid modes are basic and manual"
+            return -1
+
+        driver.run()
     except RuntimeError as err:
         print "A RuntimeError occurred while communicating with the Connect 2: {0}".format(err)
         return -1

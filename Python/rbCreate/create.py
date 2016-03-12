@@ -25,6 +25,7 @@ import commands
 from options import *
 import numpy as np
 from testing.mock_serial import MockSerial
+import struct
 
 
 # A few helper methods from
@@ -82,7 +83,7 @@ def _from_binary(s):
     return lowbit + 2 * _from_binary(s[:-1])
 
 
-def _twos_complement_int_1_byte (byte):
+def _twos_complement_int_1_byte(byte):
     """
     Convert a single byte into its twos complement integer representation
     :param byte: The byte to convert (char or int)
@@ -264,10 +265,25 @@ class Create:
     # endregion
 
     # region Actuation
+    def drive_direct(self, right_speed=0, left_speed=0):
+        """
+        This methods give direct control over the Create's wheel actuators
+        :param right_speed: [-500, 500] mm/s
+        :param left_speed: [-500, 500] mm/s
+        :return: None
+        """
+        right_speed = self._clamp(right_speed, -500, 500)
+        left_speed = self._clamp(left_speed, -500, 500)
+
+        command = int(commands.DRIVE_DIRECT)
+        cmd = struct.pack(">Bhh", command, right_speed, left_speed)
+        self._send_command_raw(cmd)
+
+
     def drive(self, direction=DriveDirection.Standstill, speed=0, turn_direction=TurnDirection.Straight,
               turn_radius=SpecialRadii.straight()):
         """
-        This method gives you direct control over the Create's wheel actuators.
+        This method gives you direct control over the Create's velocity.
         :param direction: Use value from DriveDirection enum
         :param speed: (mm/s) The average velocity of the Create2. Clamped to [0, 500]
         :param turn_direction: Use value from TurnDirection
@@ -283,17 +299,11 @@ class Create:
         if turn_direction == TurnDirection.Right:
             turn_radius *= -1
 
-        print "Driving {0} mm/s with a turn radius of {1}".format(speed, turn_radius)
+        # w "Driving {0} mm/s with a turn radius of {1}".format(speed, turn_radius)
 
-        twos_comp_speed = _to_twos_complement_2_bytes(speed)
-        twos_comp_rad = _to_twos_complement_2_bytes(turn_radius)
-
-        print "Twos compliment speed: {0}, rad: {1}".format(twos_comp_speed, twos_comp_rad)
-
-        parambytes = "{0} {1} {2} {3}".format(twos_comp_speed[0], twos_comp_speed[1], twos_comp_rad[0],
-                                              twos_comp_rad[1])
-        print "Parambytes = {0}".format(parambytes)
-        self._send(commands.DRIVE, parambytes)
+        command = int(commands.DRIVE)
+        cmd = struct.pack(">Bhh", command, speed, turn_radius)
+        self._send_command_raw(cmd)
 
     def drive_straight_forward(self, speed=0):
         """

@@ -11,8 +11,9 @@ class MockSerial(serial.Serial):
         print("Closed connection")
 
     def write(self, data):
-        print("Writing data: ")
-        print data
+        # print("Writing data: ")
+        # print data
+        return None
 
     def read(self, size=1):
         print "Reading data"

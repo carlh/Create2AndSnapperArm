@@ -53,3 +53,4 @@ RETURN_TO_DOCK = '143'  # Seek the home base and begin charging, setting mode to
 
 # Actuator commands
 DRIVE = '137'
+DRIVE_DIRECT = '145'
