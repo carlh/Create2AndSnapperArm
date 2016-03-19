@@ -44,6 +44,13 @@ For the Adafruit 16 channel servo driver at the default address, the output of t
 
 This shows the driver connected to the Pi at address 40
 
+NOTE: If you're using virtualenvwrapper to manage your Python environment, you'll need to make sure you have global site
+packages available by running
+
+    toggleglobalsitepackages
+
+if necessary.
+
 ### Code setup
 
 Obtain the driver library from Adafruit's Github account:
