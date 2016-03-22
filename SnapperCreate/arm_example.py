@@ -17,11 +17,13 @@
     SOFTWARE.
 """
 import atexit
+import os
 import sys
 
 from time import sleep
-from SnapperCreate.rbSnapper import Snapper
-from SnapperCreate.rbSnapper import Joints
+
+from rbSnapper import Snapper
+from rbSnapper import Joints
 
 front_floor_position = {
     Joints.WAIST: 0,
