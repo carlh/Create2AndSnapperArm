@@ -21,9 +21,9 @@ import atexit
 import json
 import sys
 
-from drivers import BasicDrive
-from drivers import ManualSteering
-from rbCreate import Create
+from SnapperCreate.drivers import BasicDrive
+from SnapperCreate.drivers import ManualSteering
+from SnapperCreate.rbCreate import Create
 
 
 def close_connection(robot):

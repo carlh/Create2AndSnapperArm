@@ -2,10 +2,10 @@ from time import sleep
 import curses
 import atexit
 
-from rbCreate import DriveDirection
-from rbCreate import Create
-from rbCreate import TurnDirection
-from rbCreate import SpecialRadii
+from SnapperCreate.rbCreate import DriveDirection
+from SnapperCreate.rbCreate import Create
+from SnapperCreate.rbCreate import TurnDirection
+from SnapperCreate.rbCreate import SpecialRadii
 
 class ManualSteering:
 

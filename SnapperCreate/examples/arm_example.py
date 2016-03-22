@@ -20,8 +20,16 @@ import atexit
 import sys
 
 from time import sleep
-from rbSnapper import Snapper
-from rbSnapper import Joints
+from SnapperCreate.rbSnapper import Snapper
+from SnapperCreate.rbSnapper import Joints
+
+front_floor_position = {
+    Joints.WAIST: 0,
+    Joints.SHOULDER: 80,
+    Joints.ELBOW: 20,
+    Joints.WRIST: 0,
+}
+
 
 def close_connection(arm):
     """
@@ -33,19 +41,23 @@ def close_connection(arm):
     if arm is not None:
         arm.stow()
 
+
 def pick_up_in_front(arm):
     arm.set_gripper(99)
     sleep(0.5)
-    joints = {
-        Joints.WAIST: 0,
-        Joints.SHOULDER: 80,
-        Joints.ELBOW: 20,
-        Joints.WRIST: 0,
-    }
-    arm.set_joints(joints)
+    arm.set_joints(front_floor_position)
     sleep(1)
-
     arm.set_gripper(40)
+    sleep(1)
+    arm.stow()
+
+
+def put_down_in_front(arm):
+    arm.set_joints(front_floor_position)
+    sleep(1)
+    arm.set_gripper(99)
+    sleep(0.5)
+    arm.stow()
 
 
 def test_arm_motions(arm):
@@ -102,11 +114,11 @@ def test_arm_motions(arm):
 def main():
     try:
         arm = Snapper()
-        test_arm_motions(arm)
-        sleep(1)
+        atexit.register(close_connection, arm)
         pick_up_in_front(arm)
         sleep(1)
-        atexit.register(close_connection, arm)
+        put_down_in_front(arm)
+
     except RuntimeError as err:
         print "A RuntimeError occurred while testing the Snapper motion {0}".format(err)
         return -1
