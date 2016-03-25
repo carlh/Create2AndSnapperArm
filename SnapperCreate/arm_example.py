@@ -25,6 +25,7 @@ from time import sleep
 from rbSnapper import Snapper
 from rbSnapper import Joints
 
+# This configuration places the gripper on the floor 4 inches in front of the Create
 front_floor_position = {
     Joints.WAIST: 0,
     Joints.SHOULDER: 80,
@@ -48,7 +49,7 @@ def pick_up_in_front(arm):
     arm.set_gripper(99)
     sleep(0.5)
     arm.set_joints(front_floor_position)
-    sleep(1)
+    sleep(20)
     arm.set_gripper(40)
     sleep(1)
     arm.stow()
@@ -118,8 +119,6 @@ def main():
         arm = Snapper()
         atexit.register(close_connection, arm)
         pick_up_in_front(arm)
-        sleep(1)
-        put_down_in_front(arm)
 
     except RuntimeError as err:
         print "A RuntimeError occurred while testing the Snapper motion {0}".format(err)

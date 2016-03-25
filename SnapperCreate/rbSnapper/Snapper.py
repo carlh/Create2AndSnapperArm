@@ -90,7 +90,6 @@ class Snapper:
             Joints.SHOULDER: -80,
             Joints.ELBOW: -65,
             Joints.WRIST: -30,
-            Joints.GRIPPER: 40
         })
 
     def _query_duration(self, current_joint_position, target_position):
