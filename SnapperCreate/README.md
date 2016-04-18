@@ -2,7 +2,6 @@
 
 ## Description
 
-rbe501create.py is the driver program for the RBE501 class project.  See the README in the rbCreate package for installation details.
+Interface and control a Snapper Robotic Arm mounted to an iRobot Create 2 mobile base.
 
-## Visual servoing
-To assist with alignment of
+See the READMEs in the rbCreate and rbSnapper packages for installation details.
