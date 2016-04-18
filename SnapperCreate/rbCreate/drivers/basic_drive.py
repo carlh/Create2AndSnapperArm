@@ -16,23 +16,37 @@
     TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
     SOFTWARE.
 """
-import serial
+from time import sleep
+from rbCreate import DriveDirection
+from rbCreate import TurnDirection
+from rbCreate import SpecialRadii
 
 
-class MockSerial(serial.Serial):
-    def __init__(self, port, parity, stopbits, bytesize, baudrate):
-        print("Initialized MockSerial")
+class BasicDrive:
+    def __init__(self, create):
+        print "Starting basic drive"
+        self.create = create
+        return
 
-    is_open = True
+    def run(self):
+        print "Begin basic test drive routine"
+        self.create.set_safe_mode()
 
-    def close(self):
-        print("Closed connection")
+        self.create.drive(direction=DriveDirection.Forward, speed=100, turn_direction=TurnDirection.Left, turn_radius=SpecialRadii.straight())
 
-    def write(self, data):
-        # print("Writing data: ")
-        # print data
-        return None
+        sleep(1)
 
-    def read(self, size=1):
-        print "Reading data"
+        self.create.drive(direction=DriveDirection.Forward, speed=200, turn_direction=TurnDirection.Left, turn_radius=500)
+        sleep(2)
 
+        self.create.drive(direction=DriveDirection.Forward, speed=300, turn_direction=TurnDirection.Right, turn_radius=500)
+        sleep(1)
+
+        self.create.drive(direction=DriveDirection.Forward, speed=200, turn_direction=TurnDirection.Straight, turn_radius=SpecialRadii.straight())
+        sleep(2)
+
+        self.create.drive(direction=DriveDirection.Forward, speed=200, turn_direction=TurnDirection.Left, turn_radius=0)
+        sleep(5)
+
+        print "End basic test drive routine"
+        return

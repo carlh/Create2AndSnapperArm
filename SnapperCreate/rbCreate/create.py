@@ -17,113 +17,15 @@
     SOFTWARE.
 """
 
+import struct
 import thread
+
 import serial
 import serial.tools.list_ports
-import time
+
 import commands
 from options import *
-import numpy as np
 from testing.mock_serial import MockSerial
-import struct
-
-
-# A few helper methods from
-# http://www.rose-hulman.edu/Users/faculty/young/CS-Classes/binaries/Python/FIXME/create.py
-# These provide all of the bit/byte level conversions we need to communicate with the Create and all of
-# its sensors.
-def _bytes_of_r(r):
-    """
-    Prints the raw bytes of the sensor reply
-    :param r: raw bytes of a sensor reply
-    :return: None
-    """
-    print('raw r is', r)
-    for i in range(len(r)):
-        print('byte', i, 'is', ord(r[i]))
-    print('Done')
-
-
-def _bit_of_byte(bit, byte):
-    """
-    Pick the bit out of the byte
-    :param bit: The index of the desired bit
-    :param byte: The byte to pull the bit out of
-    :return: The 0 or 1 at the bit position of byte
-    """
-    if bit < 0 or bit > 7:
-        print('bit must be between 0 and 7')
-        return 0
-    return (byte >> bit) & 0x01
-
-
-def _to_binary(val, num_bits):
-    """
-    Prints numBits of val in binary
-    :param val: The value to print numBits of
-    :param numBits: The number of bits of val to print
-    :return: None
-    """
-    if num_bits == 0:
-        return
-    else:
-        _to_binary(val >> 1, num_bits - 1)
-        print((val & 0x01), ' ')
-
-
-def _from_binary(s):
-    """
-    Takes a string of 0's and 1's and returns the int value
-    :param s: String of 0's and 1's
-    :return:
-    """
-    if s == 0:
-        return 0
-    lowbit = ord(s[-1]) - ord('0')
-    return lowbit + 2 * _from_binary(s[:-1])
-
-
-def _twos_complement_int_1_byte(byte):
-    """
-    Convert a single byte into its twos complement integer representation
-    :param byte: The byte to convert (char or int)
-    :return: an integer in the range [-128, 127]
-    """
-    sign_bit = _bit_of_byte(7, byte)  # Grab the sign bit
-    lower_bits = byte & 127  # Mask out the lower 7 bits
-    if sign_bit == 1:
-        return lower_bits - (1 << 7)
-    else:
-        return lower_bits
-
-
-def _twos_complement_int_2_bytes(high_byte, low_byte):
-    """
-    Convert a 2 byte sequence into its 2s complement integer represenation
-    :param highByte: (char or int) The high byte.  The MSB of this byte is the sign bit
-    :param lowByte:  (char or int) The low byte.
-    :return:  an integer in the range [-32768, 32767]
-    """
-    sign_bit = _bit_of_byte(7, high_byte)
-    lower_bits_of_high_byte = high_byte & 127
-    unsigned_int = lower_bits_of_high_byte << 8 | low_byte & 0xFF
-    if sign_bit == 1:
-        return unsigned_int - (1 << 15)
-    else:
-        return unsigned_int
-
-
-def _to_twos_complement_2_bytes(value):
-    """
-
-    :param value:
-    :return:
-    """
-    if value >= 0:
-        eqbitval = value
-    else:
-        eqbitval = (1 << 16) + value
-    return (eqbitval >> 8) & 0xFF, eqbitval & 0xFF
 
 
 class Create:
@@ -279,7 +181,6 @@ class Create:
         cmd = struct.pack(">Bhh", command, right_speed, left_speed)
         self._send_command_raw(cmd)
 
-
     def drive(self, direction=DriveDirection.Standstill, speed=0, turn_direction=TurnDirection.Straight,
               turn_radius=SpecialRadii.straight()):
         """
@@ -298,8 +199,6 @@ class Create:
 
         if turn_direction == TurnDirection.Right:
             turn_radius *= -1
-
-        # w "Driving {0} mm/s with a turn radius of {1}".format(speed, turn_radius)
 
         command = int(commands.DRIVE)
         cmd = struct.pack(">Bhh", command, speed, turn_radius)
