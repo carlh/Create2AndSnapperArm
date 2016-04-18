@@ -18,8 +18,6 @@
 """
 # This file contains the constants that will be used to send and receive commands from the Connect 2
 
-
-
 # States
 STATE_START = '128'  # [Passive, Save, Full]
 STATE_RESET = '7'  # [All]

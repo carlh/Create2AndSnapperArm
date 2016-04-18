@@ -56,7 +56,6 @@ class ManualSteering:
         self.create.set_safe_mode()
         self.stdscr.addstr(0, 0, "Enter W, A, S, D: ")
 
-        # TODO - Actually steer manually
         while True:
             c = self.stdscr.getch()
 
@@ -79,13 +78,7 @@ class ManualSteering:
                 self.create.drive_straight_forward(0)
                 self._left_speed = 0
                 self._right_speed = 0
-                # while self._speed > 0.0:
-                #     self._speed -= self._speed_delta
-                #     self.create.drive_straight_forward(self._speed)
-                #     stop_string = "Slowing...{0}".format(self._speed)
-                #     self.stdscr.addstr(0, 18, stop_string)
-                #     self.stdscr.clrtoeol()
-                #     self.stdscr.refresh()
+
                 self.create.stop_motion()
                 self.stdscr.addstr(0, 18, "Stopped...")
                 self.stdscr.clrtoeol()
@@ -143,7 +136,6 @@ class ManualSteering:
 
         sleep(3)
         print "End Manual steering routine"
-
 
     def cleanup(self, stdscr):
         curses.nocbreak()
