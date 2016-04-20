@@ -84,21 +84,32 @@ def build_wall(create, arm):
     """
 
     # We assume that we start right in front of the first brick
-    iteration_delta = 0.3
-    iteration_buffer = 0.0
+    forward_speed = 100  # The speed with which to drive forward
+    forward_drive_duration = 2  # The amount of time to drive in a straight line
+    iteration_delta = 0.3  # The amount to increase the forward drive time per iteration
+    iteration_buffer = 0.0  # The total amount of time to add to the base forward drive time
+    rotation_speed = 124  # The speed with which to rotate in place (mm/s)
+    rotation_duration = 3.18  # The amount of time to spin
+    
     for _ in range(3):
         pick_up_brick(arm)
-        create.drive_direct(123, -123)
-        sleep(3.18)
-        create.drive_direct(100, 100)
-        sleep(2 + iteration_buffer)
+
+        create.drive_direct(rotation_speed, -rotation_speed)
+        sleep(rotation_duration)
+
+        create.drive_direct(forward_speed, forward_speed)
+        sleep(forward_drive_duration + iteration_buffer)
+
         create.stop_motion()
         put_down_brick(arm)
-        create.drive_direct(-123, 123)
-        sleep(3.18)
-        create.drive_direct(100, 100)
+
+        create.drive_direct(-rotation_speed, rotation_speed)
+        sleep(rotation_duration)
+
+        create.drive_direct(forward_speed, forward_speed)
         iteration_buffer += iteration_delta
-        sleep(2 + iteration_buffer)
+        sleep(forward_drive_duration + iteration_buffer)
+
         create.stop_motion()
         iteration_buffer += iteration_delta
 
