@@ -34,6 +34,13 @@ front_floor_position = {
     Joints.WRIST: 0,
 }
 
+home_position = {
+    Joints.WAIST: 0,
+    Joints.SHOULDER: 0,
+    Joints.ELBOW: 0,
+    Joints.WRIST: 0
+}
+
 gripper = {
     'closed': 40,
     'open': 99
